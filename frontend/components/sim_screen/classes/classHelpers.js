@@ -24,6 +24,11 @@ export class Food extends Rect {
         super(size, position)
         this.eaten = false
     }
+
+    animate (ctx) {
+        ctx.fillStyle = "green"
+        if (!this.eaten) ctx.fillRect(this.position.x, this.position.y, this.width, this.height)
+    }
 }
 
 export const createBeings = (numBeings, size = {width: 20, height: 20}) => {
@@ -38,8 +43,23 @@ export const createBeings = (numBeings, size = {width: 20, height: 20}) => {
     return beingsArray
 }
 
+export const createFood = (amount, size = { width: 10, height: 10 }) => {
+    const foodArray = []
+    while (amount > foodArray.length) {
+        const position = {
+            x: Math.floor(Math.random() * 580) + 30,
+            y: Math.floor(Math.random() * 360) + 30
+        }
+        const newFood = new Food(size, position)
+        foodArray.push(newFood)
+    }
+    return foodArray
+}
+
+
+
 const createRandomBeingPosition = () => {
-    switch (Math.floor(Math.random() * Math.floor(4)) ) {
+    switch (Math.floor(Math.random() * 4) ) {
         case 0:
             return {
                 x: 0,

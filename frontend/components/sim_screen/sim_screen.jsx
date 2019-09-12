@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { Being, createBeings } from './classes/classHelpers';
+import { createFood, createBeings } from './classes/classHelpers';
 
 class SimScreen extends React.Component {
 
@@ -12,6 +12,7 @@ class SimScreen extends React.Component {
         this.squarePos = {x: 0, y: 0}
 
         this.beings = createBeings(this.props.simConfig.populationAmount)
+        this.food = createFood(this.props.simConfig.foodAmount)
 
         this.animationInterval = setInterval(() => {
             this.drawFrame()
@@ -25,6 +26,9 @@ class SimScreen extends React.Component {
         this.beings.forEach((being) => {
             being.animate(this.ctx)
         })
+        this.food.forEach((food) => {
+            food.animate(this.ctx)
+        })
     }
 
     componentDidUpdate (prevProps) {
@@ -33,6 +37,9 @@ class SimScreen extends React.Component {
         }
         if (prevProps.simConfig.populationAmount !== this.props.simConfig.populationAmount) {
             this.beings = createBeings(this.props.simConfig.populationAmount)
+        }
+        if (prevProps.simConfig.foodAmount !== this.props.simConfig.foodAmount) {
+            this.food = createFood(this.props.simConfig.foodAmount)
         }
     }
 
