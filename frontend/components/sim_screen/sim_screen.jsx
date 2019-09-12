@@ -1,5 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
+import { Being, createBeings } from './classes/classHelpers';
 
 class SimScreen extends React.Component {
 
@@ -10,6 +11,8 @@ class SimScreen extends React.Component {
 
         this.squarePos = {x: 0, y: 0}
 
+        this.beings = createBeings(this.props.simConfig.populationAmount)
+
         this.animationInterval = setInterval(() => {
             this.drawFrame()
         }, 1000);
@@ -19,24 +22,23 @@ class SimScreen extends React.Component {
         this.ctx.fillStyle = "aqua"
         this.ctx.fillRect(0, 0, 640, 420)
         
-        this.ctx.fillStyle = "red"
-        this.ctx.fillRect(this.squarePos.x, this.squarePos.y, 10, 10)
-        this.squarePos.y += 5
-        this.squarePos.x += 5
+        this.beings.forEach((being) => {
+            being.animate(this.ctx)
+        })
     }
 
-    componentDidUpdate () {
+    componentDidUpdate (prevProps) {
         if (this.ctx != this.canvas.getContext("2d")) {
             this.ctx = this.canvas.getContext("2d")
         }
-        this.squarePos = { x: 0, y: 0 }
+        if (prevProps.simConfig.populationAmount !== this.props.simConfig.populationAmount) {
+            this.beings = createBeings(this.props.simConfig.populationAmount)
+        }
     }
 
     render () {
         return (
-            <div>
-                <canvas ref={(canvas) => {this.canvas = canvas}} width={640} height={420} />
-            </div>
+            <canvas ref={(canvas) => {this.canvas = canvas}} width={640} height={420} />
         )
     }
 }
