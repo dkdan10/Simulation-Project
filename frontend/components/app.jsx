@@ -1,9 +1,13 @@
 import React from 'react'
 import { Provider } from 'react-redux'
 
+import SimulationScreen from './sim_screen/sim_screen'
+import SimulationConfig from './sim_config/sim_config'
+
 const App = ({store}) => (
     <Provider store={store}>
-        <h1>Hello again!</h1>
+        <SimulationScreen/>
+        <SimulationConfig/>
     </Provider>
 );
 

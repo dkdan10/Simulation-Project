@@ -3,13 +3,10 @@ import { combineReducers } from "redux";
 // import session from "./session/session_reducer";
 // import errors from "./errors/errors_reducer";
 // import ui from "./ui/ui_reducer";
+import simConfig from "./sim_screen/sim_screen_config"
 
-const rootReducer = (state, action) => {}
-// combineReducers({
-//     entities,
-//     session,
-//     errors,
-//     ui
-// });
+const rootReducer = combineReducers({
+    simConfig
+});
 
 export default rootReducer;
