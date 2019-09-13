@@ -17,15 +17,17 @@ export default class Being extends Rect {
     }
 
     move(foodArray) {
+        // FIND NEW FOOD IF NO FOOD OR YOUR FOOD IS EATEN
         if (this.closestFood === null || this.closestFood.eaten) this.closestFood = this.checkFoodSense(foodArray)
-        if (this.closestFood !== null) this.moveTowardsFood()
+        // GO TO FOOD IF FOOD IS FOUND AND STILL HUNGRY
+        if (this.closestFood !== null && this.amountEaten === 0) { 
+            this.moveTowardsFood()
+        } else if (this.amountEaten > 0) {
+            this.goHome()
+        }
     }
 
     moveTowardsFood() {
-        if (this.amountEaten > 0) {
-            return
-        }
-
         // IF ON FOOD
         if (this.distanceFromRect(this.closestFood) === 0) {
             this.eatFood()
@@ -67,6 +69,32 @@ export default class Being extends Rect {
             }
         })
         return closestFood.food
+    }
+
+    goHome () {
+        // FIND CLOSEST EDGE
+        const closestX = (this.position.x > 310) ? 620 : 0
+        const closestY = (this.position.y > 200) ? 400 : 0
+        
+        if (Math.abs(this.position.x - closestX) < Math.abs(this.position.y - closestY)) {
+            if (closestX === 620) {
+                this.position.x += this.movePerFrame
+                if(this.position.x > 620) this.position.x = 620
+            } else {
+                this.position.x -= this.movePerFrame
+                if (this.position.x < 0) this.position.x = 0
+
+            }
+        } else {
+            if (closestY === 400) {
+                this.position.y += this.movePerFrame
+                if (this.position.y > 400) this.position.y = 400
+            } else {
+                this.position.y -= this.movePerFrame
+                if (this.position.y < 0) this.position.y = 0
+            }
+        }
+
     }
 
 }
