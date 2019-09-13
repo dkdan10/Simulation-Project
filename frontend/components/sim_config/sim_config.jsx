@@ -45,7 +45,7 @@ class SimConfig extends React.Component {
                     Amount of Food: 
                     <input type="number" onChange={this.handleInputChange("foodAmount")} value={foodAmount}/>
                 </label>
-                <input type="submit" value="Update Config" />
+                <input type="submit" value="Run Sim" />
             </form>
         )
     }

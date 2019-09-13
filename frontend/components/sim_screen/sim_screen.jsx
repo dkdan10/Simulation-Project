@@ -35,12 +35,14 @@ class SimScreen extends React.Component {
         if (this.ctx != this.canvas.getContext("2d")) {
             this.ctx = this.canvas.getContext("2d")
         }
-        if (prevProps.simConfig.populationAmount !== this.props.simConfig.populationAmount) {
-            this.beings = createBeings(this.props.simConfig.populationAmount)
-        }
-        if (prevProps.simConfig.foodAmount !== this.props.simConfig.foodAmount) {
-            this.food = createFood(this.props.simConfig.foodAmount)
-        }
+        // if (prevProps.simConfig.populationAmount !== this.props.simConfig.populationAmount) {
+        //     this.food = createFood(this.props.simConfig.foodAmount)
+        //     this.beings = createBeings(this.props.simConfig.populationAmount)
+        // }
+        // if (prevProps.simConfig.foodAmount !== this.props.simConfig.foodAmount) {
+        this.food = createFood(this.props.simConfig.foodAmount)
+        this.beings = createBeings(this.props.simConfig.populationAmount)
+        // }
     }
 
     render () {
