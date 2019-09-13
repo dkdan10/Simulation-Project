@@ -16,7 +16,7 @@ class SimScreen extends React.Component {
 
         this.animationInterval = setInterval(() => {
             this.drawFrame()
-        }, 1000);
+        }, 60);
     }
 
     drawFrame () {
@@ -24,7 +24,7 @@ class SimScreen extends React.Component {
         this.ctx.fillRect(0, 0, 640, 420)
         
         this.beings.forEach((being) => {
-            being.animate(this.ctx)
+            being.animate(this.ctx, this.food)
         })
         this.food.forEach((food) => {
             food.animate(this.ctx)
