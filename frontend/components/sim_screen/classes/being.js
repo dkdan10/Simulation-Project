@@ -7,6 +7,7 @@ export default class Being extends Rect {
         this.movePerFrame = 4
         this.closestFood = null
         this.amountEaten = 0
+        this.goForBaby = Math.round(Math.random())
         this.color = "red"
         this.screenSize = screenSize
     }
@@ -22,6 +23,8 @@ export default class Being extends Rect {
         if (this.closestFood === null || this.closestFood.eaten) this.closestFood = this.checkFoodSense(foodArray)
         // GO TO FOOD IF FOOD IS FOUND AND STILL HUNGRY
         if (this.closestFood !== null && this.amountEaten === 0) { 
+            this.moveTowardsFood()
+        } else if (this.amountEaten === 1 && this.goForBaby === 1 && this.closestFood!== null) {
             this.moveTowardsFood()
         } else if (this.amountEaten > 0) {
             this.goHome()
@@ -54,6 +57,7 @@ export default class Being extends Rect {
         this.closestFood = null
         this.amountEaten++
         this.color = "green"
+        this.goForBaby = Math.round(Math.random())
     }
 
     checkFoodSense(foodArray) {

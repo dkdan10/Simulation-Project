@@ -1,6 +1,8 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { createFood, createBeings, createRandomBeingPosition } from './classes/classHelpers';
+import Being from "./classes/being"
+import Food from "./classes/food"
 
 class SimScreen extends React.Component {
 
@@ -127,6 +129,7 @@ class SimScreen extends React.Component {
 
         let numberDead = 0
         let numberSurvived = 0 
+        let numberBabies = 0
         for (let i = 0; i < this.beings.length; i++) {
             const being = this.beings[i];
             if (!being.isSafe()) {
@@ -134,20 +137,31 @@ class SimScreen extends React.Component {
                 i--
                 numberDead++
             } else {
+                if (being.amountEaten > 1) {
+                    numberBabies ++
+                }
                 // SET BEING STATE HERE
                 being.color = "purple"
                 being.amountEaten = 0
                 being.closestFood = null
-                numberSurvived++
                 being.position = createRandomBeingPosition({ width: being.width, height: being.height}, being.screenSize)
+                numberSurvived++
             }
         }
         // DISPATCH AN ACTION THAT WILL UPDATE STATS FOR BEINGS
         console.log(`Day ${this.currentDay}: `)
         console.log(`${numberDead} Beings did not make it`)
         console.log(`${numberSurvived} Beings survived another day`)
-        console.log(`${numberDead} less Beings tomorrow`)
+        console.log(`${numberBabies} Beings being born tomorrow`)
 
+        console.log(`${numberSurvived + numberBabies} Beings tomorrow`)
+
+        for (let i = 0; i < numberBabies; i++) {
+            const beingSize = { width: 20, height: 20 }
+            const position = createRandomBeingPosition(beingSize, screenSize)
+            const newBeing = new Being(beingSize, position, screenSize)
+            this.beings.push(newBeing)
+        }
         
         // CREATE NEW FOOD
         this.food = createFood(foodAmount, screenSize)
