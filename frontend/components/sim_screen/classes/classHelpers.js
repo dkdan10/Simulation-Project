@@ -26,7 +26,7 @@ export const createFood = (amount, screenSize, size = { width: 10, height: 10 })
     return foodArray
 }
 
-const createRandomBeingPosition = (beingSize, screenSize) => {
+export const createRandomBeingPosition = (beingSize, screenSize) => {
     switch (Math.floor(Math.random() * 4) ) {
         case 0:
             return {

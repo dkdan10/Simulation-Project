@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { createFood, createBeings } from './classes/classHelpers';
+import { createFood, createBeings, createRandomBeingPosition } from './classes/classHelpers';
 
 class SimScreen extends React.Component {
 
@@ -10,7 +10,10 @@ class SimScreen extends React.Component {
         const { screenSize, populationAmount, foodAmount, daySeconds } = this.props.simConfig
         this.timeToday = 0
         this.lengthOfDay = daySeconds * 60
+        this.currentDay = 0
+
         this.state = {
+            dayFinished: false,
             simulating: false
         }
         this.controlButtonPressed = this.controlButtonPressed.bind(this)
@@ -39,7 +42,7 @@ class SimScreen extends React.Component {
         const { screenSize } = this.props.simConfig
         let finishedDay = false
         if (this.timeToday > this.lengthOfDay) {
-            this.setState({ simulating: false })
+            this.setState({ simulating: false, dayFinished: true })
             clearInterval(this.animationInterval)
             finishedDay = true
         }
@@ -90,12 +93,17 @@ class SimScreen extends React.Component {
             this.food = createFood(foodAmount, screenSize)
             this.beings = createBeings(populationAmount, screenSize)
             this.lengthOfDay = daySeconds * 60
+            this.setState({
+                dayFinished: false,
+                simulating: false
+            })
             this.drawNoMoveFrame()
         }
     }
 
     controlButtonPressed (e) {
         e.preventDefault()
+        console.log(this.timeToday)
         if (this.state.simulating) {
             this.setState({ simulating: false })
             clearInterval(this.animationInterval)
@@ -106,12 +114,48 @@ class SimScreen extends React.Component {
             }, 1000 / 60);
         } else {
             console.log("Move To Next Day Here")
+            this.setupNextDay()
         }
+    }
+
+    setupNextDay () {
+        const {foodAmount, screenSize} = this.props.simConfig
+
+        let numberDead = 0
+        let numberSurvived = 0 
+        for (let i = 0; i < this.beings.length; i++) {
+            const being = this.beings[i];
+            if (!being.isSafe()) {
+                this.beings = this.beings.slice(0,i).concat(this.beings.slice(i + 1))
+                i--
+                numberDead++
+            } else {
+                // SET BEING STATE HERE
+                being.color = "purple"
+                being.amountEaten = 0
+                being.closestFood = null
+                numberSurvived++
+                being.position = createRandomBeingPosition({ width: being.width, height: being.height}, being.screenSize)
+            }
+        }
+        // DISPATCH AN ACTION THAT WILL UPDATE STATS FOR BEINGS
+        console.log(`Day ${this.currentDay}: `)
+        console.log(`${numberDead} Beings did not make it`)
+        console.log(`${numberSurvived} Beings survived another day`)
+        console.log(`${numberDead} less Beings tomorrow`)
+
+        
+        // CREATE NEW FOOD
+        this.food = createFood(foodAmount, screenSize)
+        this.timeToday = 0
+        this.currentDay++
+        this.setState({dayFinished: false})
+        this.drawNoMoveFrame()
     }
 
     render () {
         const {screenSize} = this.props.simConfig
-        const controlButtonText = this.state.simulating ? "Pause Day" : this.timeToday < this.lengthOfDay ? "Play Day" : "Next Day"
+        const controlButtonText = this.state.simulating ? "Pause Day" : !this.state.dayFinished ? "Play Day" : "Next Day"
 
         return (
             <>
