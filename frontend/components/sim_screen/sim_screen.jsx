@@ -13,15 +13,12 @@ class SimScreen extends React.Component {
         this.currentDay = 0
 
         this.state = {
+            autoPlay: false,
             dayFinished: false,
             simulating: false
         }
         this.controlButtonPressed = this.controlButtonPressed.bind(this)
-        this.saveContext = this.saveContext.bind(this);
-    }
-
-    saveContext(ctx) {
-        this.ctx = ctx;
+        this.toggleAutoPlay = this.toggleAutoPlay.bind(this);
     }
 
     componentDidMount() {
@@ -58,6 +55,12 @@ class SimScreen extends React.Component {
         this.food.forEach((food) => {
             food.animate(this.ctx)
         })
+
+        if (finishedDay && this.state.autoPlay) {
+            this.autoPlayTimeout = setTimeout(() => {
+                this.setupNextDay()
+            }, 1000);
+        }
     }
 
     drawFrame () {
@@ -90,10 +93,12 @@ class SimScreen extends React.Component {
 
         if (populationAmount !== prevProps.simConfig.populationAmount || foodAmount !== prevProps.simConfig.foodAmount) {
             this.timeToday = 0
+            this.currentDay = 0
             this.food = createFood(foodAmount, screenSize)
             this.beings = createBeings(populationAmount, screenSize)
             this.lengthOfDay = daySeconds * 60
             this.setState({
+                autoPlay: false,
                 dayFinished: false,
                 simulating: false
             })
@@ -102,8 +107,8 @@ class SimScreen extends React.Component {
     }
 
     controlButtonPressed (e) {
-        e.preventDefault()
-        console.log(this.timeToday)
+        if (e) e.preventDefault()
+
         if (this.state.simulating) {
             this.setState({ simulating: false })
             clearInterval(this.animationInterval)
@@ -113,7 +118,6 @@ class SimScreen extends React.Component {
                 this.drawFrame()
             }, 1000 / 60);
         } else {
-            console.log("Move To Next Day Here")
             this.setupNextDay()
         }
     }
@@ -151,16 +155,45 @@ class SimScreen extends React.Component {
         this.currentDay++
         this.setState({dayFinished: false})
         this.drawNoMoveFrame()
+        if (this.state.autoPlay) {
+            this.autoPlayTimeout = setTimeout(() => {
+                this.controlButtonPressed()
+            }, 1000);
+        }
+    }
+
+    toggleAutoPlay (e) {
+        e.preventDefault()
+        if (this.state.autoPlay) {
+            clearInterval(this.animationInterval)
+            clearTimeout(this.autoPlayTimeout)
+            this.setState({
+                autoPlay: false,
+                simulating: false
+            })
+        } else {
+            this.setState({
+                autoPlay: true,
+                simulating: true
+            })
+            if (!this.simulating) this.controlButtonPressed()
+        }
+    }
+
+    componentWillUnmount() {
+        this.clearInterval(this.animationInterval)
+        this.clearTimeout(this.autoPlayTimeout)
     }
 
     render () {
         const {screenSize} = this.props.simConfig
         const controlButtonText = this.state.simulating ? "Pause Day" : !this.state.dayFinished ? "Play Day" : "Next Day"
-
+        const autoPlayText = this.state.autoPlay ? "Pause AutoPlay" : "Start AutoPlay"
         return (
             <>
                 <div>
-                    <button onClick={this.controlButtonPressed}>{controlButtonText}</button>
+                    <button disabled={this.state.autoPlay} onClick={this.controlButtonPressed}>{controlButtonText}</button>
+                    <button onClick={this.toggleAutoPlay}>{autoPlayText}</button>
                 </div>
                 <canvas ref={(canvas) => { this.canvas = canvas }} width={screenSize.width} height={screenSize.height} />
             </>
