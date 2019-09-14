@@ -1,52 +1,53 @@
 import Being from "./being" 
 import Food from "./food"
 
-export const createBeings = (numBeings, size = {width: 20, height: 20}) => {
+export const createBeings = (numBeings, screenSize, size = {width: 20, height: 20}) => {
     
     const beingsArray = []
     while (numBeings > beingsArray.length) {
-        const position = createRandomBeingPosition()
-        const newBeing = new Being(size, position)
+        const position = createRandomBeingPosition(size, screenSize)
+        const newBeing = new Being(size, position, screenSize)
         beingsArray.push(newBeing)
     }
 
     return beingsArray
 }
 
-export const createFood = (amount, size = { width: 10, height: 10 }) => {
+export const createFood = (amount, screenSize, size = { width: 10, height: 10 }) => {
     const foodArray = []
     while (amount > foodArray.length) {
         const position = {
-            x: Math.floor(Math.random() * 580) + 30,
-            y: Math.floor(Math.random() * 360) + 30
+            x: Math.floor(Math.random() * (screenSize.width - 60)) + 30,
+            y: Math.floor(Math.random() * (screenSize.height - 60)) + 30
         }
+        console.log(position.y, screenSize.height)
         const newFood = new Food(size, position)
         foodArray.push(newFood)
     }
     return foodArray
 }
 
-const createRandomBeingPosition = () => {
+const createRandomBeingPosition = (beingSize, screenSize) => {
     switch (Math.floor(Math.random() * 4) ) {
         case 0:
             return {
                 x: 0,
-                y: Math.floor(Math.random() * 400)
+                y: Math.floor(Math.random() * (screenSize.height - beingSize.height))
             }
         case 1:
             return {
-                x: 620,
-                y: Math.floor(Math.random() * 400)
+                x: (screenSize.width - beingSize.width),
+                y: Math.floor(Math.random() * (screenSize.height - beingSize.height))
             }
         case 2:
             return {
-                x: Math.floor(Math.random() * 620),
+                x: Math.floor(Math.random() * (screenSize.width - beingSize.width)),
                 y: 0
             }
         case 3:
             return {
-                x: Math.floor(Math.random() * 620),
-                y: 400
+                x: Math.floor(Math.random() * (screenSize.width - beingSize.width)),
+                y: (screenSize.height - beingSize.height)
             }
         default:
             return {x: 0, y: 0}

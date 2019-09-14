@@ -7,8 +7,8 @@ class SimConfig extends React.Component {
     constructor(props) {
         super(props)
 
-        const { foodAmount, populationAmount, screenSize } = this.props.simConfig
-        this.state = { foodAmount, populationAmount, screenSize }
+        const { foodAmount, populationAmount, screenSize, daySeconds } = this.props.simConfig
+        this.state = { foodAmount, populationAmount, screenSize, daySeconds }
 
         this.handleUpdateConfig = this.handleUpdateConfig.bind(this)
         this.handleInputChange = this.handleInputChange.bind(this)
@@ -17,11 +17,12 @@ class SimConfig extends React.Component {
     handleUpdateConfig (e) {
         e.preventDefault()
         const { updateSimConfig } = this.props
-        const { foodAmount, populationAmount, screenSize } = this.state
+        const { foodAmount, populationAmount, screenSize, daySeconds } = this.state
         updateSimConfig({
             foodAmount: parseInt(foodAmount),
             populationAmount: parseInt(populationAmount),
-            screenSize
+            screenSize,
+            daySeconds
         })
     }
 
@@ -32,10 +33,12 @@ class SimConfig extends React.Component {
     }
 
     render() {
-        const { foodAmount, populationAmount, screenSize } = this.state
+        const { foodAmount, populationAmount, screenSize, daySeconds } = this.state
 
         return (
             <form className="config-form" onSubmit={this.handleUpdateConfig}>
+                <h2>Simulation Config</h2>
+                
                 <label>
                     Number of Creatures: 
                     <input type="number" onChange={this.handleInputChange("populationAmount")} value={populationAmount}/>
