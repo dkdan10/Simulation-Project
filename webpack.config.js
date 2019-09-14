@@ -4,7 +4,7 @@ module.exports = {
     context: __dirname,
     entry: './frontend/simulation_project.jsx',
     output: {
-        path: path.join(__dirname, 'frontend_dist'),
+        path: path.join(__dirname, 'dist'),
         filename: 'bundle.js'
     },
     resolve: {
