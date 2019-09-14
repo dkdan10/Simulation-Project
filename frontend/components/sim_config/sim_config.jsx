@@ -38,7 +38,7 @@ class SimConfig extends React.Component {
         return (
             <form className="config-form" onSubmit={this.handleUpdateConfig}>
                 <h2>Simulation Config</h2>
-                
+
                 <label>
                     Number of Creatures: 
                     <input type="number" onChange={this.handleInputChange("populationAmount")} value={populationAmount}/>
@@ -48,7 +48,7 @@ class SimConfig extends React.Component {
                     Amount of Food: 
                     <input type="number" onChange={this.handleInputChange("foodAmount")} value={foodAmount}/>
                 </label>
-                <input type="submit" value="Run Sim" />
+                <input type="submit" value="Restart Sim" />
             </form>
         )
     }

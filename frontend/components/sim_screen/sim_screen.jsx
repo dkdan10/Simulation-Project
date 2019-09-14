@@ -4,33 +4,50 @@ import { createFood, createBeings } from './classes/classHelpers';
 
 class SimScreen extends React.Component {
 
-    componentDidMount() {
-        this.ctx = this.canvas.getContext("2d")
-        this.ctx.fillStyle = "aqua"
-        this.ctx.fillRect(0, 0, 640, 420)
-
-        this.squarePos = {x: 0, y: 0}
+    constructor(props) {
+        super(props)
 
         const { screenSize, populationAmount, foodAmount, daySeconds } = this.props.simConfig
+        this.timeToday = 0
+        this.lengthOfDay = daySeconds * 60
+        this.state = {
+            simulating: false
+        }
+        this.controlButtonPressed = this.controlButtonPressed.bind(this)
+        this.saveContext = this.saveContext.bind(this);
+    }
 
+    saveContext(ctx) {
+        this.ctx = ctx;
+    }
+
+    componentDidMount() {
+        const { screenSize, populationAmount, foodAmount, daySeconds } = this.props.simConfig
+        
+        this.ctx = this.canvas.getContext("2d")
+        this.ctx.fillStyle = "aqua"
+        this.ctx.fillRect(0, 0, screenSize.width, screenSize.height)
+        
         this.beings = createBeings(populationAmount, screenSize)
         this.food = createFood(foodAmount, screenSize)
 
-        this.timeToday = 0
-        this.lengthOfDay = daySeconds * 60
-
-        this.animationInterval = setInterval(() => {
-            this.drawFrame()
-        }, 1000 / 60);
+        this.drawNoMoveFrame()
     }
 
-    endDay () {
+
+    drawNoMoveFrame () {
         const { screenSize } = this.props.simConfig
+        let finishedDay = false
+        if (this.timeToday > this.lengthOfDay) {
+            this.setState({ simulating: false })
+            clearInterval(this.animationInterval)
+            finishedDay = true
+        }
 
         this.ctx.fillStyle = "aqua"
         this.ctx.fillRect(0, 0, screenSize.width, screenSize.height)
         this.beings.forEach(being => {
-            if (!being.isSafe()) {
+            if (finishedDay && !being.isSafe()) {
                 being.color = "black"
             }
             being.animate(this.ctx)
@@ -45,9 +62,10 @@ class SimScreen extends React.Component {
 
         if (this.timeToday === this.lengthOfDay) {
             this.timeToday++
-            this.endDay()
+            this.drawNoMoveFrame()
             return
         } else if (this.timeToday > this.lengthOfDay) return
+        
         this.timeToday ++
 
         this.ctx.fillStyle = "aqua"
@@ -66,23 +84,40 @@ class SimScreen extends React.Component {
             this.ctx = this.canvas.getContext("2d")
         }
         const {foodAmount, populationAmount, daySeconds, screenSize} = this.props.simConfig
-        // if (prevProps.simConfig.populationAmount !== this.props.simConfig.populationAmount) {
-        //     this.food = createFood(this.props.simConfig.foodAmount)
-        //     this.beings = createBeings(this.props.simConfig.populationAmount)
-        // }
-        // if (prevProps.simConfig.foodAmount !== this.props.simConfig.foodAmount) {
-        this.timeToday = 0
-        this.food = createFood(foodAmount, screenSize)
-        this.beings = createBeings(populationAmount, screenSize)
-        this.lengthOfDay = daySeconds * 60
-        // }
+
+        if (populationAmount !== prevProps.simConfig.populationAmount || foodAmount !== prevProps.simConfig.foodAmount) {
+            this.timeToday = 0
+            this.food = createFood(foodAmount, screenSize)
+            this.beings = createBeings(populationAmount, screenSize)
+            this.lengthOfDay = daySeconds * 60
+            this.drawNoMoveFrame()
+        }
+    }
+
+    controlButtonPressed (e) {
+        e.preventDefault()
+        if (this.state.simulating) {
+            this.setState({ simulating: false })
+            clearInterval(this.animationInterval)
+        } else if (this.timeToday < this.lengthOfDay) {
+            this.setState({simulating: true})
+            this.animationInterval = setInterval(() => {
+                this.drawFrame()
+            }, 1000 / 60);
+        } else {
+            console.log("Move To Next Day Here")
+        }
     }
 
     render () {
         const {screenSize} = this.props.simConfig
+        const controlButtonText = this.state.simulating ? "Pause Day" : this.timeToday < this.lengthOfDay ? "Play Day" : "Next Day"
+
         return (
             <>
-                <div>CONTROLS GO HERE</div>
+                <div>
+                    <button onClick={this.controlButtonPressed}>{controlButtonText}</button>
+                </div>
                 <canvas ref={(canvas) => { this.canvas = canvas }} width={screenSize.width} height={screenSize.height} />
             </>
         )

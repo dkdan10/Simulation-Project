@@ -5,8 +5,8 @@ const defaultState = {
     populationAmount: 10, 
     foodAmount: 10,
     screenSize: {
-        width: 800,
-        height: 600
+        width: 640,
+        height: 420
     },
     daySeconds: 2
 }

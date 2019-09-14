@@ -20,7 +20,6 @@ export const createFood = (amount, screenSize, size = { width: 10, height: 10 })
             x: Math.floor(Math.random() * (screenSize.width - 60)) + 30,
             y: Math.floor(Math.random() * (screenSize.height - 60)) + 30
         }
-        console.log(position.y, screenSize.height)
         const newFood = new Food(size, position)
         foodArray.push(newFood)
     }
