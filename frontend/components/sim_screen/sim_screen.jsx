@@ -111,7 +111,7 @@ class SimScreen extends React.Component {
     controlButtonPressed (e) {
         if (e) e.preventDefault()
 
-        if (this.state.simulating) {
+        if (this.state.simulating && !this.state.autoPlay) {
             this.setState({ simulating: false })
             clearInterval(this.animationInterval)
         } else if (this.timeToday < this.lengthOfDay) {
@@ -186,11 +186,12 @@ class SimScreen extends React.Component {
                 simulating: false
             })
         } else {
+            const cb = !this.state.simulating ? this.controlButtonPressed : null
             this.setState({
                 autoPlay: true,
                 simulating: true
-            })
-            if (!this.simulating) this.controlButtonPressed()
+            },
+            cb)
         }
     }
 
