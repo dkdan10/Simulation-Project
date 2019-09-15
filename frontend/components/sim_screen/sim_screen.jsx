@@ -171,7 +171,6 @@ class SimScreen extends React.Component {
         console.log(`${numberDead} Beings did not make it`)
         console.log(`${numberSurvived} Beings survived another day`)
         console.log(`${numberBabies} Beings being born tomorrow`)
-
         console.log(`${numberSurvived + numberBabies} Beings tomorrow`)
 
         for (let i = 0; i < numberBabies; i++) {
