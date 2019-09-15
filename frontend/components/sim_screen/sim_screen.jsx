@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 import { createFood, createBeings, createRandomBeingPosition } from './classes/classHelpers';
 import Being from "./classes/being"
 import Food from "./classes/food"
+import { restartedSim } from '../../actions/sim_config_actions';
 
 class SimScreen extends React.Component {
 
@@ -93,7 +94,7 @@ class SimScreen extends React.Component {
         }
         const {foodAmount, populationAmount, daySeconds, screenSize} = this.props.simConfig
 
-        if (populationAmount !== prevProps.simConfig.populationAmount || foodAmount !== prevProps.simConfig.foodAmount) {
+        if (this.props.simConfig.restartSim && !prevProps.simConfig.restartSim) {
             this.timeToday = 0
             this.currentDay = 0
             this.food = createFood(foodAmount, screenSize)
@@ -104,6 +105,7 @@ class SimScreen extends React.Component {
                 dayFinished: false,
                 simulating: false
             })
+            this.props.restartedSim()
             this.drawNoMoveFrame()
         }
     }
@@ -222,4 +224,10 @@ const msp = (state) => {
     }
 }
 
-export default connect(msp)(SimScreen)
+const mdp = (dispatch) => {
+    return {
+        restartedSim: () => dispatch(restartedSim())
+    }
+}
+
+export default connect(msp, mdp)(SimScreen)

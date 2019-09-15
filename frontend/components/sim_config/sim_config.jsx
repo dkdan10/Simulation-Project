@@ -14,15 +14,20 @@ class SimConfig extends React.Component {
         this.handleInputChange = this.handleInputChange.bind(this)
     }
 
+    // ONLY INITIAL CONFIG
     handleUpdateConfig (e) {
         e.preventDefault()
         const { updateSimConfig } = this.props
         const { foodAmount, populationAmount, screenSize, daySeconds } = this.state
+
+        // restartSim on update config, but not on in frame config.
+        const restartSim = true
         updateSimConfig({
             foodAmount: parseInt(foodAmount),
             populationAmount: parseInt(populationAmount),
             screenSize,
-            daySeconds
+            daySeconds,
+            restartSim
         })
     }
 

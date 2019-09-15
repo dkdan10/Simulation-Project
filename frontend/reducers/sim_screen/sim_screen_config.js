@@ -1,4 +1,4 @@
-import { UPDATE_SIM_CONFIG } from "../../actions/sim_config_actions"
+import { UPDATE_SIM_CONFIG, RESTARTED_SIM } from "../../actions/sim_config_actions"
 import {merge} from 'lodash'
 
 const defaultState = {
@@ -8,7 +8,8 @@ const defaultState = {
         width: 640,
         height: 420
     },
-    daySeconds: 2
+    daySeconds: 2,
+    restartSim: false
 }
 
 export default (state = defaultState, action) => {
@@ -17,6 +18,10 @@ export default (state = defaultState, action) => {
     switch (action.type) {
         case UPDATE_SIM_CONFIG:
             return merge({}, action.newConfig)
+        case RESTARTED_SIM:
+            const newState = merge({}, state)
+            newState.restartSim = false
+            return newState
         default:
             return state
     }
