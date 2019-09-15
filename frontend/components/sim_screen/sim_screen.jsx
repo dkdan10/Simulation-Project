@@ -11,6 +11,7 @@ class SimScreen extends React.Component {
         super(props)
 
         const { screenSize, populationAmount, foodAmount, daySeconds } = this.props.simConfig
+        
         this.timeToday = 0
         this.lengthOfDay = daySeconds * 60
         this.currentDay = 0
@@ -37,62 +38,16 @@ class SimScreen extends React.Component {
         this.drawNoMoveFrame()
     }
 
-
-    drawNoMoveFrame () {
-        const { screenSize } = this.props.simConfig
-        let finishedDay = false
-        if (this.timeToday > this.lengthOfDay) {
-            this.setState({ simulating: false, dayFinished: true })
-            clearInterval(this.animationInterval)
-            finishedDay = true
-        }
-
-        this.ctx.fillStyle = "aqua"
-        this.ctx.fillRect(0, 0, screenSize.width, screenSize.height)
-        this.beings.forEach(being => {
-            if (finishedDay && !being.isSafe()) {
-                being.color = "black"
-            }
-            being.animate(this.ctx)
-        })
-        this.food.forEach((food) => {
-            food.animate(this.ctx)
-        })
-
-        if (finishedDay && this.state.autoPlay) {
-            this.autoPlayTimeout = setTimeout(() => {
-                this.setupNextDay()
-            }, 1000);
-        }
+    componentWillUnmount() {
+        this.clearInterval(this.animationInterval)
+        this.clearTimeout(this.autoPlayTimeout)
     }
 
-    drawFrame () {
-        const {screenSize} = this.props.simConfig
-
-        if (this.timeToday === this.lengthOfDay) {
-            this.timeToday++
-            this.drawNoMoveFrame()
-            return
-        } else if (this.timeToday > this.lengthOfDay) return
-        
-        this.timeToday ++
-
-        this.ctx.fillStyle = "aqua"
-        this.ctx.fillRect(0, 0, screenSize.width, screenSize.height)
-        
-        this.beings.forEach((being) => {
-            being.animate(this.ctx, this.food)
-        })
-        this.food.forEach((food) => {
-            food.animate(this.ctx)
-        })
-    }
-
-    componentDidUpdate (prevProps) {
+    componentDidUpdate(prevProps) {
         if (this.ctx != this.canvas.getContext("2d")) {
             this.ctx = this.canvas.getContext("2d")
         }
-        const {foodAmount, populationAmount, daySeconds, screenSize} = this.props.simConfig
+        const { foodAmount, populationAmount, daySeconds, screenSize } = this.props.simConfig
 
         if (this.props.simConfig.restartSim && !prevProps.simConfig.restartSim) {
             this.timeToday = 0
@@ -108,6 +63,67 @@ class SimScreen extends React.Component {
             this.props.restartedSim()
             this.drawNoMoveFrame()
         }
+    }
+
+    drawNoMoveFrame () {
+        const { screenSize } = this.props.simConfig
+        let finishedDay = false
+        if (this.timeToday > this.lengthOfDay) {
+            this.setState({ simulating: false, dayFinished: true })
+            clearInterval(this.animationInterval)
+            finishedDay = true
+        }
+
+        this.ctx.fillStyle = "aqua"
+        this.ctx.fillRect(0, 0, screenSize.width, screenSize.height)
+        this.drawBeings()
+        this.drawFood()
+
+        if (finishedDay && this.state.autoPlay) {
+            this.autoPlayTimeout = setTimeout(() => {
+                this.setupNextDay()
+            }, 1000);
+        }
+    }
+
+    drawFrame () {
+        const {screenSize} = this.props.simConfig
+
+        if (this.timeToday === this.lengthOfDay) {
+            this.timeToday++
+            this.drawNoMoveFrame()
+            return
+        } else if (!this.state.simulating) {
+            clearInterval(this.animationInterval)
+            return
+        }
+        
+        this.timeToday ++
+
+        this.ctx.fillStyle = "aqua"
+        this.ctx.fillRect(0, 0, screenSize.width, screenSize.height)
+        
+        this.drawBeings(true)
+        this.drawFood()
+    }
+
+    drawFood() {
+        this.food.forEach((food) => {
+            food.animate(this.ctx)
+        })
+    }
+
+    drawBeings(withFood) {
+        this.beings.forEach((being) => {
+            if (withFood) {
+                being.animate(this.ctx, this.food)
+            } else {
+                if (this.timeToday > this.lengthOfDay && !being.isSafe()) {
+                    being.color = "black"
+                }
+                being.animate(this.ctx)
+            }
+        })
     }
 
     controlButtonPressed (e) {
@@ -195,11 +211,6 @@ class SimScreen extends React.Component {
             },
             cb)
         }
-    }
-
-    componentWillUnmount() {
-        this.clearInterval(this.animationInterval)
-        this.clearTimeout(this.autoPlayTimeout)
     }
 
     render () {
