@@ -1,15 +1,44 @@
 import Rect from './rect'
 
+const defaultGeneMutationRate = {
+    speed: 0.1,
+    surviveChance: 0.1
+}
+
+const defaultParentGenes = {
+    speed: 4,
+    surviveChance: 0.5
+}
+
 // ADD MORE DEFAULT ATTRIBUTES
 export default class Being extends Rect {
-    constructor(size, position, screenSize) {
+    constructor(size, position, screenSize, parentGenes = defaultParentGenes) {
         super(size, position)
-        this.movePerFrame = 4
-        this.closestFood = null
-        this.amountEaten = 0
-        this.goForBaby = Math.round(Math.random())
-        this.color = "red"
         this.screenSize = screenSize
+        this.closestFood = null
+
+        // MUTATIONS
+        let randomPlusMinus = Math.random() < 0.5 ? 1 : -1
+        this.movePerFrame = parentGenes.speed + defaultGeneMutationRate['speed'] * randomPlusMinus
+        randomPlusMinus = Math.random() < 0.5 ? 1 : -1
+        this.surviveChance = parentGenes.surviveChance + defaultGeneMutationRate['surviveChance'] * randomPlusMinus
+        this.passedDownSurvive = this.surviveChance
+        // SURVIVE CHANCE CAP AT 70% chance
+        // if (this.surviveChance > 0.7) this.surviveChance = 0.7
+        if (this.surviveChance < 0.5) this.surviveChance = 0.5
+
+
+        // Chance To Go For Baby
+        this.goForBaby = Math.random()
+        this.amountEaten = 0
+
+        this.color = "red"
+        this.daysSurvived = 0
+        this.babiesHad = 0
+    }
+
+    size() {
+        return {width: this.width, height: this.height}
     }
 
     animate(ctx, foodArray) {
@@ -24,7 +53,7 @@ export default class Being extends Rect {
         // GO TO FOOD IF FOOD IS FOUND AND STILL HUNGRY
         if (this.closestFood !== null && this.amountEaten === 0) { 
             this.moveTowardsFood()
-        } else if (this.amountEaten === 1 && this.goForBaby === 1 && this.closestFood!== null) {
+        } else if (this.amountEaten === 1 && this.goForBaby < 0.8 && this.closestFood!== null) {
             this.moveTowardsFood()
         } else if (this.amountEaten > 0) {
             this.goHome()
@@ -57,7 +86,7 @@ export default class Being extends Rect {
         this.closestFood = null
         this.amountEaten++
         this.color = "green"
-        this.goForBaby = Math.round(Math.random())
+        this.goForBaby = Math.random()
     }
 
     checkFoodSense(foodArray) {
@@ -107,7 +136,29 @@ export default class Being extends Rect {
     isSafe () {
         const rightEdge = this.screenSize.width - this.width
         const bottomEdge = this.screenSize.height - this.height
-        return (this.amountEaten > 0 && (this.position.x === 0 || this.position.x === rightEdge || this.position.y === 0 || this.position.y === bottomEdge)) 
+        const didSurvive = (this.amountEaten > 0 && (this.position.x === 0 || this.position.x === rightEdge || this.position.y === 0 || this.position.y === bottomEdge))
+        if (didSurvive) {
+            return true
+        } else {
+            if (this.surviveChance > 1) {
+                this.surviveChance -= 1
+                if (this.surviveChance < 0.3) this.surviveChance = 0.3
+                return true
+            } else {
+                const survived = Math.random() < this.surviveChance
+                this.surviveChance = 0.3
+                return survived
+            }
+        }
+    }
+
+    haveBaby () {
+        const myGenes = {
+            speed: this.movePerFrame,
+            surviveChance: this.passedDownSurvive
+        }
+        this.babiesHad++
+        return new Being(this.size(), this.position, this.screenSize, myGenes)
     }
 
 }

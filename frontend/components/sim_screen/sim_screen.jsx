@@ -4,6 +4,7 @@ import { createFood, createBeings, createRandomBeingPosition } from './classes/c
 import Being from "./classes/being"
 import Food from "./classes/food"
 import { restartedSim } from '../../actions/sim_config_actions';
+import { finishDay } from '../../actions/graph_actions';
 
 class SimScreen extends React.Component {
 
@@ -35,6 +36,7 @@ class SimScreen extends React.Component {
         this.beings = createBeings(populationAmount, screenSize)
         this.food = createFood(foodAmount, screenSize)
 
+        this.props.finishDay({day: this.currentDay, amount: this.beings.length})
         this.drawNoMoveFrame()
     }
 
@@ -147,7 +149,9 @@ class SimScreen extends React.Component {
 
         let numberDead = 0
         let numberSurvived = 0 
-        let numberBabies = 0
+        let totalSuriveRate = 0
+        let totalSpeed = 0
+        const beingsWithBaby = []
         for (let i = 0; i < this.beings.length; i++) {
             const being = this.beings[i];
             if (!being.isSafe()) {
@@ -155,14 +159,18 @@ class SimScreen extends React.Component {
                 i--
                 numberDead++
             } else {
+                being.daysSurvived++
+                totalSpeed += being.movePerFrame
+                totalSuriveRate += being.surviveChance
+                // Have Baby
                 if (being.amountEaten > 1) {
-                    numberBabies ++
+                    beingsWithBaby.push(being)
                 }
                 // SET BEING STATE HERE
                 being.color = "purple"
                 being.amountEaten = 0
                 being.closestFood = null
-                being.position = createRandomBeingPosition({ width: being.width, height: being.height}, being.screenSize)
+                being.position = createRandomBeingPosition(being.size(), being.screenSize)
                 numberSurvived++
             }
         }
@@ -170,16 +178,22 @@ class SimScreen extends React.Component {
         console.log(`Day ${this.currentDay}: `)
         console.log(`${numberDead} Beings did not make it`)
         console.log(`${numberSurvived} Beings survived another day`)
-        console.log(`${numberBabies} Beings being born tomorrow`)
-        console.log(`${numberSurvived + numberBabies} Beings tomorrow`)
+        console.log(`${beingsWithBaby.length} Beings being born tomorrow`)
+        console.log(`${numberSurvived + beingsWithBaby.length} Beings tomorrow`)
 
-        for (let i = 0; i < numberBabies; i++) {
-            const beingSize = { width: 20, height: 20 }
-            const position = createRandomBeingPosition(beingSize, screenSize)
-            const newBeing = new Being(beingSize, position, screenSize)
-            this.beings.push(newBeing)
+        while (beingsWithBaby.length) {
+            const currentBeing = beingsWithBaby.shift()
+            const newBaby = currentBeing.haveBaby()
+            newBaby.position = createRandomBeingPosition(newBaby.size(), screenSize)
+            totalSpeed += newBaby.movePerFrame
+            totalSuriveRate += newBaby.surviveChance
+            this.beings.push(newBaby)
         }
-        
+
+        console.log(`${totalSpeed / this.beings.length} Average Speed tomorrow`)
+        console.log(`${totalSuriveRate / this.beings.length} Average Survive Rate tomorrow`)
+
+        this.props.finishDay({day: this.currentDay, amount: this.beings.length})
         // CREATE NEW FOOD
         this.food = createFood(foodAmount, screenSize)
         this.timeToday = 0
@@ -212,6 +226,61 @@ class SimScreen extends React.Component {
         }
     }
 
+    beingsSortedByAge() {
+        return this.beings.sort((a, b) => {
+            return a.daysSurvived > b.daysSurvived ? 1 : a.daysSurvived === b.daysSurvived ? 0 : -1
+        })
+    }
+
+    beingsSortedByBabies() {
+        return this.beings.sort((a, b) => {
+            return a.babiesHad > b.babiesHad ? 1 : a.babiesHad === b.babiesHad ? 0 : -1
+        })
+    }
+
+    printBeings(sortedBy) {
+        return (e) => {
+            e.preventDefault()
+            switch (sortedBy) {
+                case "age": 
+                    this.beingsSortedByAge().forEach(b => console.log(`DaysSurvived: ${b.daysSurvived}. BabiesHad: ${b.babiesHad}. Speed: ${b.movePerFrame}. Survive: ${b.surviveChance}.` ))
+                    break;
+                case "babies":
+                    this.beingsSortedByBabies().forEach(b => console.log(`DaysSurvived: ${b.daysSurvived}. BabiesHad: ${b.babiesHad}. Speed: ${b.movePerFrame}. Survive: ${b.surviveChance}.` ))
+                    break;
+                default:
+                    console.log(this.beingsSortedByAge())
+                    break;
+            }
+        }
+    }
+
+    quickSim(amountOfDays) {
+        return e => {
+            e.preventDefault()
+
+            this.setState({
+                autoPlay: false,
+                simulating: true
+            }, () => {
+                // SIMULATE DAY
+                for (let i = 0; i < amountOfDays; i++) {
+                    this.drawFood()
+                    // SIM EACH 
+                    for (let t = 0; t < this.lengthOfDay; t++) {
+                        this.drawFrame()
+                    }
+                    // SETUP NEXT DAY
+                    this.setupNextDay()
+                }
+                this.setState({
+                    autoPlay: false,
+                    simulating: false
+                })
+            })
+        }
+    }
+
     render () {
         const {screenSize} = this.props.simConfig
         const controlButtonText = this.state.simulating ? "Pause Day" : !this.state.dayFinished ? "Play Day" : "Next Day"
@@ -221,6 +290,13 @@ class SimScreen extends React.Component {
                 <div>
                     <button disabled={this.state.autoPlay} onClick={this.controlButtonPressed}>{controlButtonText}</button>
                     <button onClick={this.toggleAutoPlay}>{autoPlayText}</button>
+                    <button onClick={this.printBeings("age")}>Log Beings Sort Days</button>
+                    <button onClick={this.printBeings("babies")}>Log Beings Sort Babies</button>
+                    <button onClick={this.printBeings()}>Log Beings</button>
+
+                    <button disabled={this.state.simulating || this.state.autoPlay} onClick={this.quickSim(1)}>Quick Sim 1 Days</button>
+                    <button disabled={this.state.simulating || this.state.autoPlay} onClick={this.quickSim(10)}>Quick Sim 10 Days</button>
+                    <button disabled={this.state.simulating || this.state.autoPlay} onClick={this.quickSim(100)}>Quick Sim 100 Days</button>
                 </div>
                 <canvas ref={(canvas) => { this.canvas = canvas }} width={screenSize.width} height={screenSize.height} />
             </>
@@ -236,7 +312,8 @@ const msp = (state) => {
 
 const mdp = (dispatch) => {
     return {
-        restartedSim: () => dispatch(restartedSim())
+        restartedSim: () => dispatch(restartedSim()),
+        finishDay: (dayData) => dispatch(finishDay(dayData))
     }
 }
 
