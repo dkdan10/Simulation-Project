@@ -41,7 +41,7 @@ class LineGraph extends React.Component {
         d3.select(node)
             .append("path")
             .data([data])
-            .attr("transform", "translate (" + margin.left + " 0)")
+            .attr("transform", "translate (" + margin.left + ", 0)")
             .attr("class", "line")
             .attr("d", valueLine)
 
@@ -52,7 +52,7 @@ class LineGraph extends React.Component {
 
         d3.select(node)
             .append("g")
-            .attr("transform", "translate (" + margin.left + " 0)")
+            .attr("transform", "translate (" + margin.left + ", 0)")
             .call(d3.axisLeft(y))
 
     }

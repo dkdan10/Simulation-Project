@@ -6,7 +6,7 @@ const defaultState = {
     foodAmount: 10,
     screenSize: {
         width: 640,
-        height: 640
+        height: 420
     },
     daySeconds: 2,
     restartSim: false
