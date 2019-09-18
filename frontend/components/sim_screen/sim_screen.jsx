@@ -26,6 +26,24 @@ class SimScreen extends React.Component {
         this.toggleAutoPlay = this.toggleAutoPlay.bind(this);
     }
 
+    animationLoop (interval) {
+        return setInterval(() => {
+            const finishedDay = this.timeToday > this.lengthOfDay
+            
+            if (this.timeToday === 0 && !this.state.simulating) {
+                this.drawStillFrame()
+            } else if (!finishedDay && this.state.simulating) {
+                this.drawFrame()
+            } else if (finishedDay && this.state.simulating && !this.state.autoPlay) {
+                this.setState({ simulating: false, dayFinished: true })
+                this.drawStillFrame()
+            } else if (this.state.autoPlay) {
+                this.controlButtonPressed()
+            }
+
+        }, interval);
+    }
+
     componentDidMount() {
         const { screenSize, populationAmount, foodAmount, daySeconds } = this.props.simConfig
         
@@ -37,12 +55,13 @@ class SimScreen extends React.Component {
         this.food = createFood(foodAmount, screenSize)
 
         this.props.finishDay({day: this.currentDay, amount: this.beings.length})
-        this.drawNoMoveFrame()
+
+        clearInterval(this.animationInterval)
+        this.animationInterval = this.animationLoop(1000 / 60)
     }
 
     componentWillUnmount() {
         this.clearInterval(this.animationInterval)
-        this.clearTimeout(this.autoPlayTimeout)
     }
 
     componentDidUpdate(prevProps) {
@@ -53,53 +72,29 @@ class SimScreen extends React.Component {
 
         if (this.props.simConfig.restartSim && !prevProps.simConfig.restartSim) {
             this.timeToday = 0
+            this.lengthOfDay = daySeconds * 60
             this.currentDay = 0
             this.food = createFood(foodAmount, screenSize)
             this.beings = createBeings(populationAmount, screenSize)
-            this.lengthOfDay = daySeconds * 60
             this.setState({
                 autoPlay: false,
                 dayFinished: false,
                 simulating: false
             })
             this.props.restartedSim()
-            this.drawNoMoveFrame()
         }
     }
 
-    drawNoMoveFrame () {
-        const { screenSize } = this.props.simConfig
-        let finishedDay = false
-        if (this.timeToday > this.lengthOfDay) {
-            this.setState({ simulating: false, dayFinished: true })
-            clearInterval(this.animationInterval)
-            finishedDay = true
-        }
-
+    drawStillFrame() {
+        const {screenSize} = this.props.simConfig
         this.ctx.fillStyle = "aqua"
         this.ctx.fillRect(0, 0, screenSize.width, screenSize.height)
         this.drawBeings()
         this.drawFood()
-
-        if (finishedDay && this.state.autoPlay) {
-            this.autoPlayTimeout = setTimeout(() => {
-                this.setupNextDay()
-            }, 1000);
-        }
     }
 
     drawFrame () {
         const {screenSize} = this.props.simConfig
-
-        if (this.timeToday === this.lengthOfDay) {
-            this.timeToday++
-            this.drawNoMoveFrame()
-            return
-        } else if (!this.state.simulating) {
-            clearInterval(this.animationInterval)
-            return
-        }
-        
         this.timeToday ++
 
         this.ctx.fillStyle = "aqua"
@@ -133,15 +128,12 @@ class SimScreen extends React.Component {
 
         if (this.state.simulating && !this.state.autoPlay) {
             this.setState({ simulating: false })
-            clearInterval(this.animationInterval)
         } else if (this.timeToday < this.lengthOfDay) {
             this.setState({simulating: true})
-            this.animationInterval = setInterval(() => {
-                this.drawFrame()
-            }, 1000 / 60);
         } else {
             this.setupNextDay()
         }
+        
     }
 
     setupNextDay () {
@@ -199,19 +191,11 @@ class SimScreen extends React.Component {
         this.timeToday = 0
         this.currentDay++
         this.setState({dayFinished: false})
-        this.drawNoMoveFrame()
-        if (this.state.autoPlay) {
-            this.autoPlayTimeout = setTimeout(() => {
-                this.controlButtonPressed()
-            }, 1000);
-        }
     }
 
     toggleAutoPlay (e) {
         e.preventDefault()
         if (this.state.autoPlay) {
-            clearInterval(this.animationInterval)
-            clearTimeout(this.autoPlayTimeout)
             this.setState({
                 autoPlay: false,
                 simulating: false
@@ -256,6 +240,18 @@ class SimScreen extends React.Component {
     }
 
     quickSim(amountOfDays) {
+        // return e => {
+        //     e.preventDefault()
+        //     const targetDay = this.currentDay + amountOfDays
+
+        //     clearInterval(this.animationInterval)
+        //     this.animationInterval = this.animationLoop(1)    
+        //     while (targetDay !== this.currentDay) {
+        //         console.log("QUICK SIMMING")
+        //     }
+        //     clearInterval(this.animationInterval)
+        //     this.animationInterval = this.animationLoop(1000 / 60)    
+        // }
         return e => {
             e.preventDefault()
 
