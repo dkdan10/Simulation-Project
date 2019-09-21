@@ -26,19 +26,10 @@ class SimScreen extends React.Component {
     }
 
     animationLoop (interval) {
+        clearInterval(this.animationInterval)
         return setInterval(() => {
             const finishedDay = this.timeToday > this.lengthOfDay
-            if (this.quickSimdays > 0) {
-                this.quickSimdays--
-                if (this.quickSimdays === 0) {
-                    this.setState({
-                        autoPlay: false,
-                        simulating: false
-                    })
-                    this.animationInterval = this.animationLoop(1000 / 60)
-                }
-            }
-
+            
             if (this.timeToday === 0 && !this.state.simulating) {
                 this.drawStillFrame()
             } else if (!finishedDay && this.state.simulating) {
@@ -60,7 +51,6 @@ class SimScreen extends React.Component {
         this.ctx.fillStyle = "aqua"
         this.ctx.fillRect(0, 0, screenSize.width, screenSize.height)
 
-        clearInterval(this.animationInterval)
         this.animationInterval = this.animationLoop(1000 / 60)
     }
 
@@ -84,7 +74,7 @@ class SimScreen extends React.Component {
                 dayFinished: false,
                 simulating: false
             })
-            clearInterval(this.animationInterval)
+
             this.animationInterval = this.animationLoop(1000 / 60)
             this.props.restartedSim()
         }
@@ -143,6 +133,20 @@ class SimScreen extends React.Component {
 
     setupNextDay () {
         this.props.finishDay({day: this.currentDay, beings: this.props.beings})
+        // STOP QUICK SIMMING IF QUICK SIMMING
+        if (this.quickSimdays > 0) {
+            this.quickSimdays--
+            if (this.quickSimdays === 0) {
+                this.setState({
+                    autoPlay: false,
+                    simulating: false
+                })
+
+                this.animationInterval = this.animationLoop(1000 / 60)
+            }
+        }
+
+
         this.currentDay++
         this.timeToday = 0
         this.setState({dayFinished: false})
@@ -155,6 +159,8 @@ class SimScreen extends React.Component {
                 autoPlay: false,
                 simulating: false
             })
+            this.quickSimdays = 0
+            this.animationInterval = this.animationLoop(1000 / 60)
         } else {
             const cb = !this.state.simulating ? this.controlButtonPressed : null
             this.setState({
@@ -179,8 +185,8 @@ class SimScreen extends React.Component {
         return e => {
             e.preventDefault()
 
-            this.quickSimdays += amountOfDays * this.lengthOfDay
-            clearInterval(this.animationInterval)
+            this.quickSimdays += amountOfDays
+
             this.animationInterval = this.animationLoop(1)    
             const cb = !this.state.simulating ? this.controlButtonPressed : null
             this.setState({
@@ -205,7 +211,7 @@ class SimScreen extends React.Component {
                     <button disabled={this.state.simulating || this.state.autoPlay} onClick={this.quickSim(1)}>Quick Sim 1 Days</button>
                     <button disabled={this.state.simulating || this.state.autoPlay} onClick={this.quickSim(10)}>Quick Sim 10 Days</button>
                     <button disabled={this.state.simulating || this.state.autoPlay} onClick={this.quickSim(100)}>Quick Sim 100 Days</button>
-                    <button disabled={this.state.simulating || this.state.autoPlay} onClick={this.quickSim(1000)}>Quick Sim 1000 Days</button>
+                    {/* <button disabled={this.state.simulating || this.state.autoPlay} onClick={this.quickSim(1000)}>Quick Sim 1000 Days</button> */}
                 </div>
                 <canvas ref={(canvas) => { this.canvas = canvas }} width={screenSize.width} height={screenSize.height} />
             </>
