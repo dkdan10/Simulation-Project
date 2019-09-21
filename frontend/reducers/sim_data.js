@@ -1,4 +1,4 @@
-import { FINISH_DAY } from "../actions/graph_actions"
+import { FINISH_DAY } from "../actions/day_actions"
 import { UPDATE_SIM_CONFIG } from "../actions/config_actions"
 
 const defaultState = [{day: 0, population: 10}]

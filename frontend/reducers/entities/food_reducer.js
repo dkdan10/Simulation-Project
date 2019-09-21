@@ -1,6 +1,6 @@
 import { createFood } from "../../components/classes/classHelpers";
 import { UPDATE_SIM_CONFIG } from "../../actions/config_actions";
-import { FINISH_DAY } from "../../actions/graph_actions";
+import { FINISH_DAY } from "../../actions/day_actions";
 
 let screenSize = {
     width: 640,
