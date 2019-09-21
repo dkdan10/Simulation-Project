@@ -1,4 +1,5 @@
 import Rect from './rect'
+import { createRandomBeingPosition } from './classHelpers';
 
 const defaultGeneMutationRate = {
     speed: 0.1,
@@ -16,6 +17,7 @@ export default class Being extends Rect {
         super(size, position)
         this.screenSize = screenSize
         this.closestFood = null
+        this.id = '_' + Math.random().toString(36).substr(2, 9)
 
         // MUTATIONS
         let randomPlusMinus = Math.random() < 0.5 ? 1 : -1
@@ -158,7 +160,9 @@ export default class Being extends Rect {
             surviveChance: this.passedDownSurvive
         }
         this.babiesHad++
-        return new Being(this.size(), this.position, this.screenSize, myGenes)
+        const baby = new Being(this.size(), this.position, this.screenSize, myGenes)
+        baby.position = createRandomBeingPosition(baby.size(), baby.screenSize)
+        return baby
     }
 
 }

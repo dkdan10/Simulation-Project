@@ -3,14 +3,14 @@ import Food from "./food"
 
 export const createBeings = (numBeings, screenSize, size = {width: 20, height: 20}) => {
     
-    const beingsArray = []
-    while (numBeings > beingsArray.length) {
+    const beingsObj = {}
+    for (let i = 0; i < numBeings; i++) {
         const position = createRandomBeingPosition(size, screenSize)
         const newBeing = new Being(size, position, screenSize)
-        beingsArray.push(newBeing)
+        beingsObj[newBeing.id] = newBeing
     }
 
-    return beingsArray
+    return beingsObj
 }
 
 export const createFood = (amount, screenSize, size = { width: 10, height: 10 }) => {

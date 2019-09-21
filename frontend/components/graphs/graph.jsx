@@ -28,15 +28,15 @@ class LineGraph extends React.Component {
 
         const valueLine = d3.line()
             .x(d => x(d.day))
-            .y(d => y(d.amount))
+            .y(d => y(d.population))
 
         d3.select(node)
             .append("g")
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
         x.domain(d3.extent(data, (d) => d.day))
-        y.domain([0, d3.max(data, (d) => d.amount)])
-        // y.domain(d3.extent(data, (d) => d.amount))
+        y.domain([0, d3.max(data, (d) => d.population)])
+        // y.domain(d3.extent(data, (d) => d.population))
 
         d3.select(node)
             .append("path")

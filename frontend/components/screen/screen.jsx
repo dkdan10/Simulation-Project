@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { createFood, createBeings, createRandomBeingPosition } from '../classes/classHelpers';
+import { createFood, createRandomBeingPosition } from '../classes/classHelpers';
 import Being from "../classes/being"
 import Food from "../classes/food"
 import { restartedSim } from '../../actions/config_actions';
@@ -16,6 +16,7 @@ class SimScreen extends React.Component {
         this.timeToday = 0
         this.lengthOfDay = daySeconds * 60
         this.currentDay = 0
+        this.quickSimdays = 0
 
         this.state = {
             autoPlay: false,
@@ -24,12 +25,23 @@ class SimScreen extends React.Component {
         }
         this.controlButtonPressed = this.controlButtonPressed.bind(this)
         this.toggleAutoPlay = this.toggleAutoPlay.bind(this);
+        this.printBeings = this.printBeings.bind(this);
     }
 
     animationLoop (interval) {
         return setInterval(() => {
             const finishedDay = this.timeToday > this.lengthOfDay
-            
+            if (this.quickSimdays > 0) {
+                this.quickSimdays--
+                if (this.quickSimdays === 0) {
+                    this.setState({
+                        autoPlay: false,
+                        simulating: false
+                    })
+                    this.animationInterval = this.animationLoop(1000 / 60)
+                }
+            }
+
             if (this.timeToday === 0 && !this.state.simulating) {
                 this.drawStillFrame()
             } else if (!finishedDay && this.state.simulating) {
@@ -50,11 +62,6 @@ class SimScreen extends React.Component {
         this.ctx = this.canvas.getContext("2d")
         this.ctx.fillStyle = "aqua"
         this.ctx.fillRect(0, 0, screenSize.width, screenSize.height)
-        
-        this.beings = createBeings(populationAmount, screenSize)
-        this.food = createFood(foodAmount, screenSize)
-
-        this.props.finishDay({day: this.currentDay, amount: this.beings.length})
 
         clearInterval(this.animationInterval)
         this.animationInterval = this.animationLoop(1000 / 60)
@@ -68,19 +75,20 @@ class SimScreen extends React.Component {
         if (this.ctx != this.canvas.getContext("2d")) {
             this.ctx = this.canvas.getContext("2d")
         }
-        const { foodAmount, populationAmount, daySeconds, screenSize } = this.props.simConfig
+        const { daySeconds } = this.props.simConfig
 
         if (this.props.simConfig.restartSim && !prevProps.simConfig.restartSim) {
             this.timeToday = 0
             this.lengthOfDay = daySeconds * 60
             this.currentDay = 0
-            this.food = createFood(foodAmount, screenSize)
-            this.beings = createBeings(populationAmount, screenSize)
+            this.quickSimdays = 0
             this.setState({
                 autoPlay: false,
                 dayFinished: false,
                 simulating: false
             })
+            clearInterval(this.animationInterval)
+            this.animationInterval = this.animationLoop(1000 / 60)
             this.props.restartedSim()
         }
     }
@@ -105,15 +113,15 @@ class SimScreen extends React.Component {
     }
 
     drawFood() {
-        this.food.forEach((food) => {
+        this.props.food.forEach((food) => {
             food.animate(this.ctx)
         })
     }
 
     drawBeings(withFood) {
-        this.beings.forEach((being) => {
+        this.props.beings.forEach((being) => {
             if (withFood) {
-                being.animate(this.ctx, this.food)
+                being.animate(this.ctx, this.props.food)
             } else {
                 if (this.timeToday > this.lengthOfDay && !being.isSafe()) {
                     being.color = "black"
@@ -137,59 +145,9 @@ class SimScreen extends React.Component {
     }
 
     setupNextDay () {
-        const {foodAmount, screenSize} = this.props.simConfig
-
-        let numberDead = 0
-        let numberSurvived = 0 
-        let totalSuriveRate = 0
-        let totalSpeed = 0
-        const beingsWithBaby = []
-        for (let i = 0; i < this.beings.length; i++) {
-            const being = this.beings[i];
-            if (!being.isSafe()) {
-                this.beings = this.beings.slice(0,i).concat(this.beings.slice(i + 1))
-                i--
-                numberDead++
-            } else {
-                being.daysSurvived++
-                totalSpeed += being.movePerFrame
-                totalSuriveRate += being.surviveChance
-                // Have Baby
-                if (being.amountEaten > 1) {
-                    beingsWithBaby.push(being)
-                }
-                // SET BEING STATE HERE
-                being.color = "purple"
-                being.amountEaten = 0
-                being.closestFood = null
-                being.position = createRandomBeingPosition(being.size(), being.screenSize)
-                numberSurvived++
-            }
-        }
-        // DISPATCH AN ACTION THAT WILL UPDATE STATS FOR BEINGS
-        console.log(`Day ${this.currentDay}: `)
-        console.log(`${numberDead} Beings did not make it`)
-        console.log(`${numberSurvived} Beings survived another day`)
-        console.log(`${beingsWithBaby.length} Beings being born tomorrow`)
-        console.log(`${numberSurvived + beingsWithBaby.length} Beings tomorrow`)
-
-        while (beingsWithBaby.length) {
-            const currentBeing = beingsWithBaby.shift()
-            const newBaby = currentBeing.haveBaby()
-            newBaby.position = createRandomBeingPosition(newBaby.size(), screenSize)
-            totalSpeed += newBaby.movePerFrame
-            totalSuriveRate += newBaby.surviveChance
-            this.beings.push(newBaby)
-        }
-
-        console.log(`${totalSpeed / this.beings.length} Average Speed tomorrow`)
-        console.log(`${totalSuriveRate / this.beings.length} Average Survive Rate tomorrow`)
-
-        this.props.finishDay({day: this.currentDay, amount: this.beings.length})
-        // CREATE NEW FOOD
-        this.food = createFood(foodAmount, screenSize)
-        this.timeToday = 0
+        this.props.finishDay({day: this.currentDay, beings: this.props.beings})
         this.currentDay++
+        this.timeToday = 0
         this.setState({dayFinished: false})
     }
 
@@ -211,69 +169,28 @@ class SimScreen extends React.Component {
     }
 
     beingsSortedByAge() {
-        return this.beings.sort((a, b) => {
+        return this.props.beings.sort((a, b) => {
             return a.daysSurvived > b.daysSurvived ? 1 : a.daysSurvived === b.daysSurvived ? 0 : -1
         })
     }
 
-    beingsSortedByBabies() {
-        return this.beings.sort((a, b) => {
-            return a.babiesHad > b.babiesHad ? 1 : a.babiesHad === b.babiesHad ? 0 : -1
-        })
-    }
-
-    printBeings(sortedBy) {
-        return (e) => {
-            e.preventDefault()
-            switch (sortedBy) {
-                case "age": 
-                    this.beingsSortedByAge().forEach(b => console.log(`DaysSurvived: ${b.daysSurvived}. BabiesHad: ${b.babiesHad}. Speed: ${b.movePerFrame}. Survive: ${b.surviveChance}.` ))
-                    break;
-                case "babies":
-                    this.beingsSortedByBabies().forEach(b => console.log(`DaysSurvived: ${b.daysSurvived}. BabiesHad: ${b.babiesHad}. Speed: ${b.movePerFrame}. Survive: ${b.surviveChance}.` ))
-                    break;
-                default:
-                    console.log(this.beingsSortedByAge())
-                    break;
-            }
-        }
+    printBeings () {
+        this.beingsSortedByAge().forEach(b => console.log(`DaysSurvived: ${b.daysSurvived}. BabiesHad: ${b.babiesHad}. Speed: ${b.movePerFrame}. Survive: ${b.surviveChance}.` ))
     }
 
     quickSim(amountOfDays) {
-        // return e => {
-        //     e.preventDefault()
-        //     const targetDay = this.currentDay + amountOfDays
-
-        //     clearInterval(this.animationInterval)
-        //     this.animationInterval = this.animationLoop(1)    
-        //     while (targetDay !== this.currentDay) {
-        //         console.log("QUICK SIMMING")
-        //     }
-        //     clearInterval(this.animationInterval)
-        //     this.animationInterval = this.animationLoop(1000 / 60)    
-        // }
         return e => {
             e.preventDefault()
 
+            this.quickSimdays += amountOfDays * this.lengthOfDay
+            clearInterval(this.animationInterval)
+            this.animationInterval = this.animationLoop(1)    
+            const cb = !this.state.simulating ? this.controlButtonPressed : null
             this.setState({
-                autoPlay: false,
+                autoPlay: true,
                 simulating: true
-            }, () => {
-                // SIMULATE DAY
-                for (let i = 0; i < amountOfDays; i++) {
-                    this.drawFood()
-                    // SIM EACH 
-                    for (let t = 0; t < this.lengthOfDay; t++) {
-                        this.drawFrame()
-                    }
-                    // SETUP NEXT DAY
-                    this.setupNextDay()
-                }
-                this.setState({
-                    autoPlay: false,
-                    simulating: false
-                })
-            })
+            },
+            cb)
         }
     }
 
@@ -286,9 +203,7 @@ class SimScreen extends React.Component {
                 <div>
                     <button disabled={this.state.autoPlay} onClick={this.controlButtonPressed}>{controlButtonText}</button>
                     <button onClick={this.toggleAutoPlay}>{autoPlayText}</button>
-                    <button onClick={this.printBeings("age")}>Log Beings Sort Days</button>
-                    <button onClick={this.printBeings("babies")}>Log Beings Sort Babies</button>
-                    <button onClick={this.printBeings()}>Log Beings</button>
+                    <button onClick={this.printBeings}>Log Beings</button>
 
                     <button disabled={this.state.simulating || this.state.autoPlay} onClick={this.quickSim(1)}>Quick Sim 1 Days</button>
                     <button disabled={this.state.simulating || this.state.autoPlay} onClick={this.quickSim(10)}>Quick Sim 10 Days</button>
@@ -303,7 +218,9 @@ class SimScreen extends React.Component {
 
 const msp = (state) => {
     return {
-        simConfig: state.simConfig
+        simConfig: state.simConfig,
+        beings: Object.values(state.entities.beings),
+        food: state.entities.food
     }
 }
 
