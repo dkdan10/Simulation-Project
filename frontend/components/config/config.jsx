@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { updateSimConfig } from '../../actions/sim_config_actions';
+import { updateSimConfig } from '../../actions/config_actions';
 
 class SimConfig extends React.Component {
 

@@ -1,5 +1,5 @@
 import { FINISH_DAY } from "../actions/graph_actions"
-import { UPDATE_SIM_CONFIG } from "../actions/sim_config_actions"
+import { UPDATE_SIM_CONFIG } from "../actions/config_actions"
 
 const defaultState = []
 

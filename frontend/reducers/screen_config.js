@@ -1,4 +1,4 @@
-import { UPDATE_SIM_CONFIG, RESTARTED_SIM } from "../actions/sim_config_actions"
+import { UPDATE_SIM_CONFIG, RESTARTED_SIM } from "../actions/config_actions"
 import {merge} from 'lodash'
 
 const defaultState = {

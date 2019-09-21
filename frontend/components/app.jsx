@@ -1,8 +1,8 @@
 import React from 'react'
 import { Provider } from 'react-redux'
 
-import SimulationScreen from './sim_screen/sim_screen'
-import SimulationConfig from './sim_config/sim_config'
+import SimulationScreen from './screen/screen'
+import SimulationConfig from './config/config'
 import LineGraph from './graphs/graph'
 
 const App = ({store}) => (

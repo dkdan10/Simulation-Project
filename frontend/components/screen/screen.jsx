@@ -1,9 +1,9 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { createFood, createBeings, createRandomBeingPosition } from './classes/classHelpers';
-import Being from "./classes/being"
-import Food from "./classes/food"
-import { restartedSim } from '../../actions/sim_config_actions';
+import { createFood, createBeings, createRandomBeingPosition } from '../classes/classHelpers';
+import Being from "../classes/being"
+import Food from "../classes/food"
+import { restartedSim } from '../../actions/config_actions';
 import { finishDay } from '../../actions/graph_actions';
 
 class SimScreen extends React.Component {
