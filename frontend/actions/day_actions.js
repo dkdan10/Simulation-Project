@@ -8,10 +8,20 @@ export const finishDay = dayData => {
     // const {foodAmount, screenSize} = this.props.simConfig
     const deadIds = []
     const babyIds = []
-    let numberSurvived = 0 
+    let numberSurvived = 0
+    let totalSpeed = 0
+    let topSpeed = 0
+    let totalSurvialChance = 0
+    let topSurvival = 0
 
     for (let i = 0; i < beings.length; i++) {
         const being = beings[i];
+        // STATS CALULATIONS
+        totalSpeed += being.movePerFrame
+        if (topSpeed < being.movePerFrame) topSpeed = being.movePerFrame
+        totalSurvialChance += being.surviveChance
+        if (topSurvival < being.surviveChance) topSurvival = being.surviveChance
+
         if (!being.isSafe()) {
             deadIds.push(being.id)
         } else {
@@ -37,10 +47,21 @@ export const finishDay = dayData => {
 
     // CREATE NEW FOOD
     // this.food = createFood(foodAmount, screenSize)
+    const graphData = {
+        day,
+        startingPopulation: beings.length,
+        endingPopulation: beings.length - deadIds.length,
+        averageSpeed: totalSpeed / beings.length,
+        topSpeed: topSpeed,
+        averageSurvivalChance: totalSurvialChance / beings.length,
+        topSurvivalChance: topSurvival,
+        numberDead: deadIds.length,
+        numberBorn: babyIds.length
+    }
 
     return {
         type: FINISH_DAY,
-        dayData,
+        graphData,
         deadIds,
         babyIds
     }
