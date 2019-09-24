@@ -211,7 +211,7 @@ class SimScreen extends React.Component {
                     <button disabled={this.state.simulating || this.state.autoPlay} onClick={this.quickSim(1)}>Quick Sim 1 Days</button>
                     <button disabled={this.state.simulating || this.state.autoPlay} onClick={this.quickSim(10)}>Quick Sim 10 Days</button>
                     <button disabled={this.state.simulating || this.state.autoPlay} onClick={this.quickSim(100)}>Quick Sim 100 Days</button>
-                    {/* <button disabled={this.state.simulating || this.state.autoPlay} onClick={this.quickSim(1000)}>Quick Sim 1000 Days</button> */}
+                    <button disabled={this.state.simulating || this.state.autoPlay} onClick={this.quickSim(500)}>Quick Sim 500 Days</button>
                 </div>
                 <canvas ref={(canvas) => { this.canvas = canvas }} width={screenSize.width} height={screenSize.height} />
             </>
